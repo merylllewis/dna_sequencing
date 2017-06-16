@@ -1,0 +1,12 @@
+For cycle 1:
+Dye to base map that minimizes error : {'A_1': 'A', 'C_1': 'C', 'G_1': 'G', 'T_1': 'T'}
+Number of spots for which no signal was received: 20
+Error in base calls (including spots where no signal was received): 3.9%
+Dye signal contrast with the given biochemistry: 0.416
+
+For cycle 2:
+Dye to base map that minimizes error : {'A_2': 'A', 'C_2': 'C', 'G_2': 'G', 'T_2': 'T'}
+Number of spots for which no signal was received: 20
+Error in base calls (including spots where no signal was received): 6.5%
+Dye signal contrast with the given biochemistry: 0.398
+
