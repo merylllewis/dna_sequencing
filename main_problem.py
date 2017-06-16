@@ -40,6 +40,13 @@ for i in range(1, len(sys.argv)):
     basecalls_1 = br.find_min_error_basecalls ( dye_intensities_1, ref_1 )
     basecalls_2 = br.find_min_error_basecalls ( dye_intensities_2, ref_2 )
 
+    # Find dye contrast for both cycles
+    avg_contrast_1 = br.get_dye_contrast( np.array( dye_intensities_1 ) )
+    avg_contrast_2 = br.get_dye_contrast( np.array( dye_intensities_2 ) )
+
+    print( avg_contrast_1 )
+    print( avg_contrast_2 )
+
     # This is where the new csv file will be saved on disk
     new_filename = filename [ 0:-4 ] + "_new_calls.csv"
 

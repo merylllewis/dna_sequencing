@@ -128,6 +128,7 @@ def find_min_error_basecalls( dye_intensities, ref ):
     return basecalls
 
 
+# TODO: Refactor: function names need to have different naming convention
 def write_to_csv( data_read, basecalls_1, basecalls_2, filename ):
     """
     Creates a new CSV file with the reassigned basecalls for each spot of each cycle
@@ -153,3 +154,22 @@ def write_to_csv( data_read, basecalls_1, basecalls_2, filename ):
     # Write data to disk
     print("\nWriting data to " + filename)
     data_write.to_csv ( filename )
+
+
+def get_dye_contrast( dye_intensities ):
+
+    num_spots_no_signal = 0
+    contrast_sum = 0
+
+    for spot in range( 0, dye_intensities.shape[0] ):
+
+        max_intensity_dye = np.max( dye_intensities[ spot, : ], axis = 0 )
+        sum_intensities_at_spot = np.sum( dye_intensities[ spot, : ], axis = 0 )
+
+        if sum_intensities_at_spot != 0 :
+            contrast = max_intensity_dye / sum_intensities_at_spot
+            contrast_sum += contrast
+        else:
+            num_spots_no_signal += 1
+
+    return contrast_sum / ( dye_intensities.shape[0] - num_spots_no_signal )
