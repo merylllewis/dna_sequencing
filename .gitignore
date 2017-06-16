@@ -1,6 +1,7 @@
 # Created files
 *_new_calls.csv
 *_analysis_log.txt
+.idea
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
