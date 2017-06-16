@@ -13,7 +13,7 @@ __author__ = " Meryl Lewis "
 __email__ = " merylllewis@gmail.com "
 
 
-import basecall_assigner as ba
+import base_call_assigner as ba
 import numpy as np
 import pandas as pd
 import sys
