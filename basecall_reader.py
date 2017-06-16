@@ -93,6 +93,7 @@ def find_best_dye_base_map( max_intensity_dyes, dye_intensities, ref, initial_ba
                         best_base_dye_map = current_test_map.copy()
                         min_error = error
 
+    min_error = 100 * min_error / max_intensity_dyes.shape[ 0 ]  # Reassigns the percentage error to min_ error
     return best_base_dye_map, min_error
 
 
@@ -116,16 +117,16 @@ def find_min_error_basecalls( dye_intensities, ref ):
     dye_base_map = {column_names[ 0 ]:'A', column_names[ 1 ]:'C', column_names[ 2 ]:'G', column_names[ 3 ]:'T'}
 
     # Find the best possible dye to base map and find the error in assignment with this map
-    [best_dye_base_map, assignment_error] = find_best_dye_base_map( max_intensity_dyes, np.array( dye_intensities ), ref, dye_base_map )
+    [best_dye_base_map, percent_assignment_error] = find_best_dye_base_map( max_intensity_dyes, np.array( dye_intensities ), ref, dye_base_map )
 
     # Display best dye to base map and corresponding error
-    print( "Percentage Error in mapping = " + str ( (assignment_error / max_intensity_dyes.shape[ 0 ]) * 100 ) + "%" )
+    print( "Percentage Error in mapping = " + str ( percent_assignment_error ) + "%"  )
     print( "Reassigned dye to base map = " + str ( best_dye_base_map ) )
 
     # Assign new basecalls to all spots based on new dye to base map
     basecalls = assign_basecalls(best_dye_base_map, max_intensity_dyes)
 
-    return basecalls
+    return basecalls, best_dye_base_map, percent_assignment_error
 
 
 # TODO: Refactor: function names need to have different naming convention
@@ -151,25 +152,71 @@ def write_to_csv( data_read, basecalls_1, basecalls_2, filename ):
     # Concatenate dataframes
     data_write = pd.concat ( [ cycle_1, assigned_basecalls_1, cycle_2, assigned_basecalls_2 ], axis = 1 )
 
-    # Write data to disk
-    print("\nWriting data to " + filename)
-    data_write.to_csv ( filename )
+    # Write new basecalls data to disk
+    print("\nWriting new basecalls data to " + filename)
+    data_write.to_csv( filename )
 
 
 def get_dye_contrast( dye_intensities ):
+    """
+    Returns root mean square (RMS) contrast values for all spots. For each spot, contrast is computed as a ratio of the 
+    intensity of the dye with maximum intensity to the sum of all four dye intensities for that spot.
+    
+    :param dye_intensities: intensities of all dyes for each spot in a cycle 
+    :return: contrast for dye with maximum intensity for all spots in a cycle
+    
+    """
 
     num_spots_no_signal = 0
-    contrast_sum = 0
+    sum_rms_contrast = 0
+
+    # Square intensities for RMS contrast measurement
+    dye_intensities = np.square( dye_intensities )
 
     for spot in range( 0, dye_intensities.shape[0] ):
 
-        max_intensity_dye = np.max( dye_intensities[ spot, : ], axis = 0 )
-        sum_intensities_at_spot = np.sum( dye_intensities[ spot, : ], axis = 0 )
+        max_dye_intensity = np.max( dye_intensities[ spot, : ], axis = 0 )
 
-        if sum_intensities_at_spot != 0 :
-            contrast = max_intensity_dye / sum_intensities_at_spot
-            contrast_sum += contrast
+        if max_dye_intensity != 0 :
+            sum_sq_contrast = 0
+
+            for dye in range( 0, dye_intensities.shape[ 1 ] ):
+                sq_contrast = max_dye_intensity - dye_intensities[ spot, dye ]
+                sum_sq_contrast += sq_contrast
+
+            rms_contrast = np.sqrt( sum_sq_contrast / dye_intensities.shape[ 1 ] )
+            sum_rms_contrast += rms_contrast
         else:
             num_spots_no_signal += 1
 
-    return contrast_sum / ( dye_intensities.shape[0] - num_spots_no_signal )
+    avg_rms_contrast = sum_rms_contrast / ( dye_intensities.shape[0] - num_spots_no_signal )
+
+    print( "Dye contrast = ", round( avg_rms_contrast, 3 ) )
+
+    return avg_rms_contrast
+
+
+def write_to_txt ( errors, dye_maps, contrasts, filename ):
+    """
+    Writes an analysis log of errors, dye to base maps and contrasts to disk
+    
+    :param errors: percentage error in basecalls for all cycles
+    :param dye_maps: dye to base map which minimizes basecall error for all cycles
+    :param contrasts: contrast of dye with maximum intensity for each spot for all cycles
+    :param filename: filename of the analysis log
+     
+    """
+    # Writing analysis of error, dye to base maps and intensity contrasts to disk
+    print( "\nWriting analysis log to " + filename + "\n\n" )
+
+    analysis_log = open( filename, 'w' )
+
+    for i in range( 0, len( errors ) ):
+        analysis_log.write( "For cycle " + str( i + 1 ) + ":\n")
+        analysis_log.write( "Dye to base map that minimizes error : " + str( dye_maps[ i ] ) + "\n" )
+        analysis_log.write( "Error in basecalls: " + str( errors[ i ] ) + "%\n" )
+        analysis_log.write( "Dye signal contrast with the given biochemistry: " + str( contrasts[ i ] ) + "\n\n" )
+
+    analysis_log.close()
+
+
