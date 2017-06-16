@@ -92,7 +92,7 @@ def find_best_dye_base_map( max_intensity_dyes, dye_intensities, ref, initial_ba
                     if error < min_error :
                         best_base_dye_map = current_test_map.copy()
                         min_error = error
-    print( no_signal_error)
+
     return best_base_dye_map, min_error
 
 
