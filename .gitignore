@@ -1,3 +1,6 @@
+# Created CSV files
+*_new_calls.csv
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
