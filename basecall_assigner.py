@@ -2,33 +2,33 @@ import numpy as np
 import pandas as pd
 
 
-def assign_basecalls( best_base_dye_map, max_intensity_dyes ):
+def assign_base_calls( best_base_dye_map, max_intensity_dyes ):
     """
-    For a given dye to base map, assigns basecalls for all spots
+    For a given dye to base map, assigns base calls for all spots
     
     :param best_base_dye_map: base to dye map that results in the least error
     :param max_intensity_dyes: dyes that produce the highest intensity signal at each spot in the DNA sequence
     
-    :return: assigned basecalls to each spot of the DNA sequence
+    :return: assigned base calls to each spot of the DNA sequence
     
     """
 
-    basecalls = []
+    base_calls = []
                                  
     for i in range( 0, max_intensity_dyes.shape[ 0 ] ):
 
         # max_intensity_dye = N implies all dye intensities were 0 for this spot
         if max_intensity_dyes[ i ] != 'N' :
-            basecalls.append( best_base_dye_map[ max_intensity_dyes[ i ] ] )
+            base_calls.append( best_base_dye_map[ max_intensity_dyes[ i ] ] )
         else:
-            basecalls.append( 'N' )
+            base_calls.append( 'N' )
             
-    return basecalls
+    return base_calls
 
 
 def find_best_dye_base_map( max_intensity_dyes, dye_intensities, ref, initial_base_dye_map ):
     """
-    Find the basecall to dye map that results in the least error
+    Find the base call to dye map that results in the least error
     
     :param max_intensity_dyes: dyes that produce the highest intensity signal at each spot in the DNA sequence
     :param dye_intensities: array containing all four dye intensities for each spot of the DNA sequence
@@ -96,14 +96,14 @@ def find_best_dye_base_map( max_intensity_dyes, dye_intensities, ref, initial_ba
     return best_base_dye_map, min_error
 
 
-def find_min_error_basecalls( dye_intensities, ref ):
+def find_min_error_base_calls( dye_intensities, ref ):
     """
     For a given set of dye intensities and a reference DNA sequence, finds the dye to base mapping that results in 
-    basecalls with the least error, as compared to the reference sequence
+    base calls with the least error, as compared to the reference sequence
     
     :param dye_intensities: dataframe holding float values of intensities for four dyes corresponding to A, C, G, T bases
     :param ref: reference DNA sequence
-    :return: basecalls for each spot in the DNA sequence based on the dye to base map that minimizes error
+    :return: base calls for each spot in the DNA sequence based on the dye to base map that minimizes error
     """
 
     # Find the dye with the highest intensity for each spot
@@ -122,10 +122,10 @@ def find_min_error_basecalls( dye_intensities, ref ):
     print( "Percentage Error in mapping = " + str ( percent_assignment_error ) + "%"  )
     print( "Reassigned dye to base map = " + str ( best_dye_base_map ) )
 
-    # Assign new basecalls to all spots based on new dye to base map
-    basecalls = assign_basecalls(best_dye_base_map, max_intensity_dyes)
+    # Assign new base calls to all spots based on new dye to base map
+    base_calls = assign_base_calls(best_dye_base_map, max_intensity_dyes)
 
-    return basecalls, best_dye_base_map, percent_assignment_error
+    return base_calls, best_dye_base_map, percent_assignment_error
 
 
 def compute_dye_contrast( dye_intensities ):
@@ -162,7 +162,7 @@ def compute_dye_contrast( dye_intensities ):
             rms_contrast = np.sqrt( sum_sq_contrast / sq_dye_intensities.shape[ 1 ] )
             sum_rms_contrast += rms_contrast
         else:
-            # If max_dye_intesity = 0, no signal was received for this spot and this dye must be excluded
+            # If max_dye_intensity = 0, no signal was received for this spot and this dye must be excluded
             num_spots_no_signal += 1
 
     avg_rms_contrast = sum_rms_contrast / (sq_dye_intensities.shape[0 ] - num_spots_no_signal)
@@ -173,14 +173,14 @@ def compute_dye_contrast( dye_intensities ):
     return avg_rms_contrast, num_spots_no_signal
 
 
-def write_new_basecalls_to_csv ( data_read, basecalls_1, basecalls_2, filename ):
+def write_new_base_calls_to_csv ( data_read, base_calls_1, base_calls_2, filename ):
     """
-    Creates a new CSV file with the reassigned basecalls for each spot of each cycle
+    Creates a new CSV file with the reassigned base calls for each spot of each cycle
 
     :param data_read: data read from input csv file
-    :param basecalls_1: new basecalls assigned to first cycle
-    :param basecalls_2: new basecalls assigned to second cycle
-    :param filename: filename to which new CSV file containing basecalls and dye intensities must be written
+    :param base_calls_1: new base calls assigned to first cycle
+    :param base_calls_2: new base calls assigned to second cycle
+    :param filename: filename to which new CSV file containing base calls and dye intensities must be written
 
     """
 
@@ -188,24 +188,24 @@ def write_new_basecalls_to_csv ( data_read, basecalls_1, basecalls_2, filename )
     cycle_1 = pd.DataFrame ( data_read.ix [ :, 0:6 ] )
     cycle_2 = pd.DataFrame ( data_read.ix [ :, 6:11 ] )
 
-    # Create dataframes for newly assigned basecalls for each cycle
-    assigned_basecalls_1 = pd.DataFrame ( basecalls_1, columns = [ 'new_calls_1' ] )
-    assigned_basecalls_2 = pd.DataFrame ( basecalls_2, columns = [ 'new_calls_2' ] )
+    # Create dataframes for newly assigned basec alls for each cycle
+    assigned_base_calls_1 = pd.DataFrame ( base_calls_1, columns = [ 'new_calls_1' ] )
+    assigned_base_calls_2 = pd.DataFrame ( base_calls_2, columns = [ 'new_calls_2' ] )
 
     # Concatenate dataframes
-    data_write = pd.concat ( [ cycle_1, assigned_basecalls_1, cycle_2, assigned_basecalls_2 ], axis = 1 )
+    data_write = pd.concat( [ cycle_1, assigned_base_calls_1, cycle_2, assigned_base_calls_2 ], axis = 1 )
 
-    # Write new basecalls data to disk
-    print ( "\nWriting new basecalls data to " + filename )
-    data_write.to_csv ( filename )
+    # Write new base calls data to disk
+    print ( "\nWriting new base calls data to " + filename )
+    data_write.to_csv( filename )
 
 
 def create_analysis_log_file ( errors, dye_maps, contrasts, no_signals, filename ):
     """
     Writes an analysis log of errors, dye to base maps and contrasts to disk
     
-    :param errors: percentage error in basecalls for all cycles
-    :param dye_maps: dye to base map which minimizes basecall error for all cycles
+    :param errors: percentage error in base calls for all cycles
+    :param dye_maps: dye to base map which minimizes base call error for all cycles
     :param contrasts: contrast of dye with maximum intensity for each spot for all cycles
     :param filename: filename of the analysis log
      
@@ -219,7 +219,7 @@ def create_analysis_log_file ( errors, dye_maps, contrasts, no_signals, filename
         analysis_log.write( "For cycle " + str( i + 1 ) + ":\n")
         analysis_log.write( "Dye to base map that minimizes error : " + str( dye_maps[ i ] ) + "\n" )
         analysis_log.write( "Number of spots for which no signal was received: " + str( no_signals [ i ] ) + "\n" )
-        analysis_log.write( "Error in basecalls (including spots where no signal was received): " + str( errors[ i ] ) + "%\n" )
+        analysis_log.write( "Error in base calls (including spots where no signal was received): " + str( errors[ i ] ) + "%\n" )
         analysis_log.write( "Dye signal contrast with the given biochemistry: " + str( round( contrasts[ i ], 3) ) + "\n\n" )
 
     analysis_log.close()
