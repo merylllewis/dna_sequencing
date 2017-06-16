@@ -38,17 +38,22 @@ for i in range(1, len(sys.argv)):
 
     # Find best dye to base map and assign correct basecalls to all spots in both cycles. Also find dye contrast
     [ basecalls_1, dye_map_1, error_1 ] = br.find_min_error_basecalls ( dye_intensities_1, ref_1 )
-    contrast_1 = br.get_dye_contrast( np.array( dye_intensities_1 ) )
+    [ contrast_1, no_signal_1 ] = br.compute_dye_contrast( np.array( dye_intensities_1 ) )
 
     [ basecalls_2, dye_map_2, error_2 ] = br.find_min_error_basecalls ( dye_intensities_2, ref_2 )
-    contrast_2 = br.get_dye_contrast( np.array( dye_intensities_2 ) )
+    [ contrast_2, no_signal_2 ] = br.compute_dye_contrast( np.array( dye_intensities_2 ) )
 
     # This is where the new csv file and analysis log file will be saved on disk
     new_calls_csv_filename = filename [ 0:-4 ] + "_new_calls.csv"
-    analysis_log_filename = filename [ 0:-4 ] + "_analyis_log.txt"
+    analysis_log_filename = filename [ 0:-4 ] + "_analysis_log.txt"
 
     # Write new basecalls to CSV
-    br.write_to_csv( data_read, basecalls_1, basecalls_2, new_calls_csv_filename )
+    br.write_new_basecalls_to_csv( data_read, basecalls_1, basecalls_2, new_calls_csv_filename )
 
     # Write analysis log to disk
-    br.write_to_txt( [ error_1, error_2 ], [ dye_map_1, dye_map_2 ], [ contrast_1, contrast_2 ], analysis_log_filename )
+    errors = [ error_1, error_2 ]
+    dye_maps = [ dye_map_1, dye_map_2 ]
+    contrasts = [ contrast_1, contrast_2 ]
+    no_signals = [ no_signal_1, no_signal_2 ]
+
+    br.create_analysis_log_file( errors, dye_maps, contrasts, no_signals, analysis_log_filename )
